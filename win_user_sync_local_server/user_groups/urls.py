@@ -5,7 +5,7 @@ from .views import (
     get_usergroup,
     get_usergroups,
     get_usergroup_users,
-    get_included_in_usergroup_users,
+    get_included_users,
     rename_usergroup,
     add_user_to_usergroup,
     delete_usergroup,
@@ -20,7 +20,7 @@ urlpatterns = [
     path('<str:usergroup_name>/', get_usergroup, name='get_usergroup'),
     path('', get_usergroups, name='get_usergroups'),
     path('<str:usergroup_name>/users/', get_usergroup_users, name='get_usergroup_users'),
-    path('<str:usergroup_name>/included-users/', get_included_in_usergroup_users, name='get_included_in_usergroup_users'),
+    path('<str:usergroup_name>/included-users/', get_included_users, name='get_included_users'),
 
     # Update
     path('rename/<str:usergroup_name>/', rename_usergroup, name='rename_usergroup'),

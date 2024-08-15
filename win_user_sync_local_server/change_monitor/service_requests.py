@@ -34,6 +34,15 @@ class RemoteServiceClient:
             print(f"Error fetching user groups: {e}")
             return []
 
+    def get_blacklist(self, endpoint, client_id):
+        url = f'{self.base_url}/{endpoint}/{client_id}'
+        try:
+            response = requests.get(url, headers=self.authHeaders)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching blacklist: {e}")
+
     def trigger_sync(self, endpoint, data=None):
         url = f'{self.base_url}/{endpoint}'
         response = requests.post(url, json=data, headers=self.authHeaders)

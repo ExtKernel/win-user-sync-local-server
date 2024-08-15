@@ -108,7 +108,7 @@ class UsergroupEditor:
             f'Rename-LocalGroup -Name "{old_usergroup_name}" -NewName "{new_usergroup_name}"'
         )
 
-    def remove_users(self, usergroup_name, username):
+    def remove_user(self, usergroup_name, username):
         """
         Removes users from an existing user group.
 

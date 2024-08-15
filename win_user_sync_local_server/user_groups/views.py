@@ -120,8 +120,8 @@ def get_usergroup_users(request, usergroup_name):
 
 
 @keycloak_roles([PRINCIPAL_ROLE_NAME])
-@api_view(['POST'])
-def get_included_in_usergroup_users(request, usergroup_name):
+@api_view(['GET'])
+def get_included_users(request, usergroup_name):
     """
     API endpoint to retrieve users from the given list who are included in a specific user group.
 
@@ -231,7 +231,7 @@ def remove_user_from_usergroup(request, usergroup_name, username):
     Returns:
         HttpResponse: A response with a success message.
     """
-    usergroups_editor.remove_users(usergroup_name, username)
+    usergroups_editor.remove_user(usergroup_name, username)
     return HttpResponse(json.dumps({
         'message': f'User was successfully deleted from group {usergroup_name}'
     }), content_type='application/json')

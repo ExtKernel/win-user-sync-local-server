@@ -3,10 +3,11 @@
 import os
 import sys
 
+sys_argv = None
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'win_user_sync_local_server.settings')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.local')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -15,7 +16,9 @@ def main():
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
         ) from exc
-    execute_from_command_line(sys.argv)
+
+    sys_argv = sys.argv
+    execute_from_command_line(sys_argv)
 
 
 if __name__ == '__main__':

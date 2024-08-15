@@ -1,11 +1,13 @@
 import os
+import socket
 import subprocess
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
+from manage import sys_argv
 
 
-def get_env_var(env_var):
+def get_env_var(env_var, default):
     """
     Returns environment variables
 
@@ -16,8 +18,30 @@ def get_env_var(env_var):
     try:
         return os.environ[env_var]
     except KeyError as exc:
-        error_msg = f"{exc}. Set the {env_var} environment variable"
-        raise ImproperlyConfigured(error_msg)
+        if default is None:
+            error_msg = f"{exc}. Set the {env_var} environment variable"
+            raise ImproperlyConfigured(error_msg)
+        return default
+
+def get_server_host():
+    if len(sys_argv) >= 2:
+        ip, port = sys_argv[2].split(":")
+        return ip, port  # return given to the manage.py command ip and port
+    else:
+        return get_local_ip(), 8000  # return the ip of the local machine and Django's default port
+
+
+def get_local_ip():
+    try:
+        # This creates a UDP socket (doesn't actually connect)
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # This doesn't actually send any packets
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "127.0.0.1"  # Fallback to localhost if unable to get IP
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -122,8 +146,12 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+SERVER_NAME = get_env_var('SERVER_NAME')
+
+EUREKA_URL = get_env_var('EUREKA_URL', 'http://localhost:8761/eureka')
+
 # The role that the OAuth2 user should have in the token to access secured endpoints
-PRINCIPAL_ROLE_NAME = get_env_var('PRINCIPAL_ROLE_NAME')
+PRINCIPAL_ROLE_NAME = get_env_var('PRINCIPAL_ROLE_NAME', 'administrator')
 
 # Config for idp-sync-service
 # Visit the repository for more info

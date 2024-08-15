@@ -18,12 +18,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # Project apps
-    "win_user_sync_local_server.user_groups.apps.UserGroupsConfig",
-    "win_user_sync_local_server.users.apps.UsersConfig",
-    "win_user_sync_local_server.change_monitor.apps.ChangeMonitorConfig",
+    'win_user_sync_local_server.user_groups.apps.UserGroupsConfig',
+    'win_user_sync_local_server.users.apps.UsersConfig',
+    'win_user_sync_local_server.change_monitor.apps.ChangeMonitorConfig',
+    'win_user_sync_local_server.registry.apps.RegistryConfig',
 
     # Third-party
-    "rest_framework",
+    'rest_framework',
 ]
 
 KEYCLOAK_CONFIG = {
