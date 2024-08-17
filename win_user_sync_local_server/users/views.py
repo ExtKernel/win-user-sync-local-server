@@ -1,6 +1,9 @@
-import json
+"""
+This module contains views for user management operations.
+"""
 
-from django.http import HttpResponse
+import json
+from django.http import JsonResponse
 from django_keycloak_auth.decorators import keycloak_roles
 from rest_framework.decorators import api_view
 
@@ -25,28 +28,43 @@ def create_user(request):
         request (HttpRequest): The request object containing the JSON body.
 
     Returns:
-        HttpResponse: A response with a success message or an error message.
+        JsonResponse: A response with a success message or an error message.
     """
     try:
         request_body = json.loads(request.body.decode('utf-8'))
     except json.JSONDecodeError:
-        return HttpResponse(json.dumps({"error": "Invalid JSON body"}), content_type='application/json', status=400)
+        return JsonResponse(
+            {"error": "Invalid JSON body"},
+            status=400,
+            content_type='application/json'
+        )
 
     username = request_body.get('username')
     password = request_body.get('password')
 
     if not username:
-        return HttpResponse(json.dumps({"error": "Missing username parameter"}),
-                            content_type='application/json', status=400)
-    elif not password:
-        user_editor.add(username, None)
-    else:
-        user_editor.add(username, password)
+        return JsonResponse(
+            {"error": "Missing username parameter"},
+            status=400,
+            content_type='application/json'
+        )
 
-    return HttpResponse(
-        json.dumps({
-            'message': f'User {username} was added successfully'
-        }), content_type='application/json'
+    try:
+        if not password:
+            user_editor.add(username, None)
+        else:
+            user_editor.add(username, password)
+    except Exception as exc:
+        return JsonResponse(
+            {"error": f"Error creating user: {str(exc)}"},
+            status=400,
+            content_type='application/json'
+        )
+
+    return JsonResponse(
+        {'message': f'User {username} was added successfully'},
+        status=201,
+        content_type='application/json'
     )
 
 
@@ -60,12 +78,19 @@ def get_users(request):
         request (HttpRequest): The request object.
 
     Returns:
-        HttpResponse: A JSON response containing a list of all users.
+        JsonResponse: A JSON response containing a list of all users.
     """
-    users = user_retriever.get_all()
-    serialized_users = [user.serialize() for user in users]
+    try:
+        users = user_retriever.get_all()
+        serialized_users = [user.serialize() for user in users]
+    except Exception as exc:
+        return JsonResponse(
+            {"error": f"Error retrieving users: {str(exc)}"},
+            status=500,
+            content_type='application/json'
+        )
 
-    return HttpResponse(json.dumps(serialized_users), content_type='application/json')
+    return JsonResponse(serialized_users, safe=False, content_type='application/json')
 
 
 @keycloak_roles([PRINCIPAL_ROLE_NAME])
@@ -79,11 +104,18 @@ def get_user(request, username):
         username (str): The username of the user to retrieve.
 
     Returns:
-        HttpResponse: A JSON response containing the user's details.
+        JsonResponse: A JSON response containing the user's details.
     """
-    user = user_retriever.get(username)
+    try:
+        user = user_retriever.get(username)
+    except Exception as exc:
+        return JsonResponse(
+            {"error": f"Error retrieving user: {str(exc)}"},
+            status=404,
+            content_type='application/json'
+        )
 
-    return HttpResponse(json.dumps(user.serialize()), content_type='application/json')
+    return JsonResponse(user.serialize(), content_type='application/json')
 
 
 @keycloak_roles([PRINCIPAL_ROLE_NAME])
@@ -99,24 +131,37 @@ def update_user_password(request, username):
         username (str): The username of the user whose password is to be updated.
 
     Returns:
-        HttpResponse: A response with a success message or an error message.
+        JsonResponse: A response with a success message or an error message.
     """
     try:
         request_body = json.loads(request.body.decode('utf-8'))
     except json.JSONDecodeError:
-        return HttpResponse(json.dumps({"error": "Invalid JSON body"}), content_type='application/json', status=400)
+        return JsonResponse(
+            {"error": "Invalid JSON body"},
+            status=400,
+            content_type='application/json'
+        )
 
     password = request_body.get('password')
     if not password:
-        return HttpResponse(json.dumps({"error": "Missing password parameter"}), content_type='application/json',
-                            status=400)
+        return JsonResponse(
+            {"error": "Missing password parameter"},
+            status=400,
+            content_type='application/json'
+        )
 
-    user_editor.edit_password(username, password)
+    try:
+        user_editor.edit_password(username, password)
+    except Exception as exc:
+        return JsonResponse(
+            {"error": f"Error updating password: {str(exc)}"},
+            status=400,
+            content_type='application/json'
+        )
 
-    return HttpResponse(
-        json.dumps({
-            'message': f'User {username}\'s password was updated successfully'
-        }), content_type='application/json'
+    return JsonResponse(
+        {'message': f"User {username}'s password was updated successfully"},
+        content_type='application/json'
     )
 
 
@@ -131,14 +176,20 @@ def enable_user(request, username):
         username (str): The username of the user to enable.
 
     Returns:
-        HttpResponse: A response with a success message.
+        JsonResponse: A response with a success message.
     """
-    user_editor.enable(username)
+    try:
+        user_editor.enable(username)
+    except Exception as exc:
+        return JsonResponse(
+            {"error": f"Error enabling user: {str(exc)}"},
+            status=400,
+            content_type='application/json'
+        )
 
-    return HttpResponse(
-        json.dumps({
-            'message': f'User {username} was enabled successfully'
-        }), content_type='application/json'
+    return JsonResponse(
+        {'message': f'User {username} was enabled successfully'},
+        content_type='application/json'
     )
 
 
@@ -153,14 +204,20 @@ def disable_user(request, username):
         username (str): The username of the user to disable.
 
     Returns:
-        HttpResponse: A response with a success message.
+        JsonResponse: A response with a success message.
     """
-    user_editor.disable(username)
+    try:
+        user_editor.disable(username)
+    except Exception as exc:
+        return JsonResponse(
+            {"error": f"Error disabling user: {str(exc)}"},
+            status=400,
+            content_type='application/json'
+        )
 
-    return HttpResponse(
-        json.dumps({
-            'message': f'User {username} was disabled successfully'
-        }), content_type='application/json'
+    return JsonResponse(
+        {'message': f'User {username} was disabled successfully'},
+        content_type='application/json'
     )
 
 
@@ -175,12 +232,18 @@ def delete_user(request, username):
         username (str): The username of the user to delete.
 
     Returns:
-        HttpResponse: A response with a success message.
+        JsonResponse: A response with a success message.
     """
-    user_editor.delete(username)
+    try:
+        user_editor.delete(username)
+    except Exception as exc:
+        return JsonResponse(
+            {"error": f"Error deleting user: {str(exc)}"},
+            status=400,
+            content_type='application/json'
+        )
 
-    return HttpResponse(
-        json.dumps({
-            'message': f'User {username} was deleted successfully'
-        }), content_type='application/json'
+    return JsonResponse(
+        {'message': f'User {username} was deleted successfully'},
+        content_type='application/json'
     )
